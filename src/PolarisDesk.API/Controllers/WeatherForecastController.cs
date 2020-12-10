@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using PolarisDesk.API.WorkerServices;
+using PolarisDesk.Models;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace PolarisDesk.API.Controllers
 {
@@ -12,21 +14,30 @@ namespace PolarisDesk.API.Controllers
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
     {
-        private readonly ILogger<WeatherForecastController> _logger;
-        private readonly WeatherForecastControllerWorkerService _workerService;
+        private static readonly string[] Summaries = new[]
+        {
+            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+        };
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger, WeatherForecastControllerWorkerService workerService)
+        private readonly ILogger<WeatherForecastController> _logger;
+
+        public WeatherForecastController(ILogger<WeatherForecastController> logger)
         {
             _logger = logger;
-            _workerService = workerService;
         }
 
         [HttpGet]
         public IActionResult Get()
         {
-            return Ok(Enumerable.Range(1, 5)
-                .Select(index => this._workerService.GetForecast(DateTime.Now.AddDays(index)))
-                .ToArray());
+            var rng = new Random();
+
+            return Ok(Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            {
+                Date = DateTime.Now.AddDays(index),
+                TemperatureC = rng.Next(-20, 55),
+                Summary = Summaries[rng.Next(Summaries.Length)]
+            })
+            .ToArray());
         }
     }
 }
